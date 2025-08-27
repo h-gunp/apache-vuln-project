@@ -1,11 +1,28 @@
 version: '3.8'
 services:
+  # 아파치 웹서버 서비스
   web:
     build: .
     container_name: my-apache-app
     ports:
       - "8080:80"
     volumes:
+      # htdocs 폴더를 아파치와 php 컨테이너가 공유합니다.
       - ./htdocs:/usr/local/apache2/htdocs/
+      # 수정된 httpd.conf 파일을 마운트합니다.
       - ./conf/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      # .htpasswd 파일도 마운트합니다.
+      - ./conf/.htpasswd:/usr/local/apache2/conf/.htpasswd
+    # php 서비스가 실행된 후에 web 서비스를 실행합니다.
+    depends_on:
+      - php
     restart: always
+
+  # PHP-FPM 서비스
+  php:
+    # 공식 PHP-FPM 이미지를 사용합니다.
+    image: php:8.2-fpm
+    container_name: my-php-fpm
+    volumes:
+      # htdocs 폴더를 공유하여 PHP 파일을 읽을 수 있게 합니다.
+      - ./htdocs:/usr/local/apache2/htdocs/
